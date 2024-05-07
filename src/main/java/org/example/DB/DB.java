@@ -94,12 +94,14 @@ public class DB extends config {
             return false;
         }
     }
-    public boolean subscribeUser(Long id) {
+    public boolean subscribeUser(Long id, String key) {
         try {
             Connection con  = DriverManager.getConnection(url, login, password);
             Class.forName("org.postgresql.Driver");
             try {
                 PreparedStatement st = con.prepareStatement("UPDATE user_table SET is_active=true WHERE telegram_user_id = " + id);
+                st.executeUpdate();
+                st = con.prepareStatement("DELETE FROM subscribe_key WHERE key = '" + key + "'");
                 st.executeUpdate();
                 st.close();
             } finally {

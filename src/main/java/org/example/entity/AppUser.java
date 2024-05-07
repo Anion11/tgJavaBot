@@ -23,6 +23,17 @@ public class AppUser {
         this.firstName = firstName;
     }
 
+    @Override
+    public String toString() {
+        return "@" + username +
+                " { id=" + id +
+                ", telegramUserId=" + telegramUserId +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", isActive=" + isActive +
+                " }";
+    }
+
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
