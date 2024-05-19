@@ -30,7 +30,7 @@ public class AppUser {
                 ", telegramUserId=" + telegramUserId +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", isActive=" + isActive +
+                ", subscribe=" + subscribe +
                 " }";
     }
 
@@ -41,15 +41,10 @@ public class AppUser {
     public void setUsername(String username) {
         this.username = username;
     }
+    private Subscribe subscribe;
 
-    public void setActive(Boolean active) {
-        isActive = active;
-    }
-
-    private Boolean isActive;
-
-    public Long getId() {
-        return id;
+    public void setSubscribe(Subscribe sub) {
+        subscribe = sub;
     }
 
     public Long getTelegramUserId() {
@@ -68,7 +63,7 @@ public class AppUser {
         return username;
     }
 
-    public Boolean getActive() {
-        return isActive;
+    public Subscribe getSubscribe() {
+        return subscribe;
     }
 }

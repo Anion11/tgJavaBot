@@ -1,9 +1,13 @@
 package org.example.Bot;
 import org.example.DB.DB;
 import org.example.entity.AppUser;
+import org.example.entity.Subscribe;
+import org.example.entity.SubscribePost;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -13,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.InputStream;
 import java.util.*;
 
 public class BotMediator extends TelegramLongPollingBot {
@@ -48,8 +53,11 @@ public class BotMediator extends TelegramLongPollingBot {
 
                 SendMessage outMess = new SendMessage();
                 outMess.setChatId(chatId);
-                outMess.setReplyMarkup(setMenu());
+                outMess.setReplyMarkup(setMenu(inMess.getFrom().getId()));
 
+                System.out.println(inMess.getText().toLowerCase());
+
+                System.out.println(db.getUserData(inMess.getFrom().getId()));
                 if (Objects.equals(storage.getUsersLastAnswers().get(inMess.getChatId()), "/unsubscribe")) outMess.setReplyMarkup(setButtons());
 
                 for (String response: responses) {
@@ -85,12 +93,17 @@ public class BotMediator extends TelegramLongPollingBot {
     }
 
     private boolean checkValidKey(String key) {
-        return Arrays.asList(storage.getKeys()).contains(key);
+        String[] keys = storage.getKeys();
+        for (String k : keys) {
+            if (k.equals(key)) return true;
+        }
+        return false;
     }
     private boolean subscribeUser(Long userId, String key) {
-        return db.subscribeUser(userId, key);
+        Subscribe subscribe = db.getSubscribe(key);
+        return db.subscribeUser(userId, subscribe);
     }
-    public ReplyKeyboardMarkup setMenu() {
+    public ReplyKeyboardMarkup setMenu(Long id) {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setResizeKeyboard(true);
         keyboardMarkup.setOneTimeKeyboard(false);
@@ -98,13 +111,18 @@ public class BotMediator extends TelegramLongPollingBot {
         KeyboardRow row = new KeyboardRow();
         Set<String> commands = storage.getStingCommands();
         for(String key: commands) {
-            if (!Objects.equals(key, "/start")) row.add(new KeyboardButton(key));
+            if (!Objects.equals(key, "/start") && !Objects.equals(key, "/posts")) row.add(new KeyboardButton(key));
             if (row.size() >= 3) {
                 list.add(row);
                 row = new KeyboardRow();
             }
         }
         if (!row.isEmpty()) {
+            list.add(row);
+        }
+        if (id == storage.getAdminId()) {
+            row = new KeyboardRow();
+            row.add(new KeyboardButton("/posts"));
             list.add(row);
         }
         keyboardMarkup.setKeyboard(list);
@@ -133,7 +151,7 @@ public class BotMediator extends TelegramLongPollingBot {
         return inlineKeyboardMarkup;
     }
     private String UserInfo(Long UserId) {
-        if (db.getUserData(UserId).getActive()) return "Подписка активна";
+        if (db.getUserData(UserId).getSubscribe().getActive()) return db.getUserData(UserId).getSubscribe().toString();
         else return "Подписка на данный момент не активна";
     }
     private void registerUser(Message message) {
@@ -142,7 +160,7 @@ public class BotMediator extends TelegramLongPollingBot {
             return;
         }
         AppUser user = new AppUser();
-        user.setActive(false);
+        user.setSubscribe(null);
         user.setTelegramUserId(message.getFrom().getId());
         user.setLastName(message.getFrom().getLastName());
         user.setUsername(message.getFrom().getUserName());
@@ -153,7 +171,19 @@ public class BotMediator extends TelegramLongPollingBot {
     private boolean unSubscribeUser(Long userId) {
         return db.unSubscribeUser(userId);
     }
-    private String[] parseMessage(Message message) {
+    private void sendPosts(ArrayList<AppUser> users) throws TelegramApiException {
+        for (AppUser user : users) {
+            SendPhoto sendPhoto = new SendPhoto();
+            sendPhoto.setChatId(String.valueOf(user.getTelegramUserId()));
+            SubscribePost post = db.getRandomSubscribePost(user.getSubscribe().getSubscribeType());
+            InputStream inputStream = getClass().getResourceAsStream("/" + post.getSrc() + ".png");
+            InputFile photoFile = new InputFile(inputStream, post.getSrc() + ".png");
+            sendPhoto.setPhoto(photoFile);
+            sendPhoto.setCaption(post.getDescr());
+            execute(sendPhoto);
+        }
+    }
+    private String[] parseMessage(Message message) throws TelegramApiException {
         String[] response;
         String msg = message.getText().toLowerCase();
         if (storage.getCommands().containsKey(msg)) {
@@ -166,13 +196,21 @@ public class BotMediator extends TelegramLongPollingBot {
                     response = new String[]{String.join(", ", storage.getCommands().get(message.getText())), UserInfo(message.getFrom().getId())};
                     break;
                 case "/subscribe":
-                    if (db.getUserData(message.getFrom().getId()).getActive()) response = new String[]{"У вас уже есть подписка!"};
+                    if (db.getUserData(message.getFrom().getId()).getSubscribe().getActive()) {
+                        response = new String[]{"У вас уже есть подписка!"};
+                    }
                     break;
                 case "/unsubscribe":
-                    if (!db.getUserData(message.getFrom().getId()).getActive())  {
+                    if (!db.getUserData(message.getFrom().getId()).getSubscribe().getActive())  {
                         response = new String[]{"У вас еще нет подписки!"};
                         storage.getUsersLastAnswers().put(message.getChatId(), "");
                         return response;
+                    }
+                    break;
+                case "/posts":
+                    if (message.getFrom().getId() == storage.getAdminId()) {
+                        sendPosts(db.getAllSubscribers());
+                        response = storage.getCommands().get(message.getText());
                     }
                     break;
             }
