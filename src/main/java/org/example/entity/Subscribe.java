@@ -1,5 +1,4 @@
 package org.example.entity;
-import java.util.HashMap;
 
 public class Subscribe {
     private int subscribe_id;
@@ -25,6 +24,7 @@ public class Subscribe {
     public void setSubscribeType(String subscribe_type) {
         this.subscribe_type = subscribe_type;
     }
+
     public String getSubscribeType() {
         return subscribe_type;
     }

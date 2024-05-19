@@ -2,14 +2,11 @@ package org.example.entity;
 
 public class AppUser {
     private Long id;
-
     private Long telegramUserId;
-
     private String firstName;
-
     private String lastName;
-
     private String username;
+    private Subscribe subscribe;
 
     public void setId(Long id) {
         this.id = id;
@@ -23,17 +20,6 @@ public class AppUser {
         this.firstName = firstName;
     }
 
-    @Override
-    public String toString() {
-        return "@" + username +
-                " { id=" + id +
-                ", telegramUserId=" + telegramUserId +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", subscribe=" + subscribe +
-                " }";
-    }
-
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
@@ -41,7 +27,6 @@ public class AppUser {
     public void setUsername(String username) {
         this.username = username;
     }
-    private Subscribe subscribe;
 
     public void setSubscribe(Subscribe sub) {
         subscribe = sub;
@@ -65,5 +50,16 @@ public class AppUser {
 
     public Subscribe getSubscribe() {
         return subscribe;
+    }
+
+    @Override
+    public String toString() {
+        return "@" + username +
+                " { id=" + id +
+                ", telegramUserId=" + telegramUserId +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", subscribe=" + subscribe +
+                " }";
     }
 }

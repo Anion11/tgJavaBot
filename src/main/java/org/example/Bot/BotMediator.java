@@ -23,6 +23,7 @@ import java.util.*;
 public class BotMediator extends TelegramLongPollingBot {
     final private DB db = new DB();
     Storage storage;
+
     public BotMediator() {
         storage = new Storage();
     }
@@ -55,9 +56,6 @@ public class BotMediator extends TelegramLongPollingBot {
                 outMess.setChatId(chatId);
                 outMess.setReplyMarkup(setMenu(inMess.getFrom().getId()));
 
-                System.out.println(inMess.getText().toLowerCase());
-
-                System.out.println(db.getUserData(inMess.getFrom().getId()));
                 if (Objects.equals(storage.getUsersLastAnswers().get(inMess.getChatId()), "/unsubscribe")) outMess.setReplyMarkup(setButtons());
 
                 for (String response: responses) {
@@ -109,7 +107,7 @@ public class BotMediator extends TelegramLongPollingBot {
         keyboardMarkup.setOneTimeKeyboard(false);
         List<KeyboardRow> list = new ArrayList<>();
         KeyboardRow row = new KeyboardRow();
-        Set<String> commands = storage.getStingCommands();
+        Set<String> commands = storage.getCommands().keySet();
         for(String key: commands) {
             if (!Objects.equals(key, "/start") && !Objects.equals(key, "/posts")) row.add(new KeyboardButton(key));
             if (row.size() >= 3) {
@@ -117,9 +115,7 @@ public class BotMediator extends TelegramLongPollingBot {
                 row = new KeyboardRow();
             }
         }
-        if (!row.isEmpty()) {
-            list.add(row);
-        }
+        if (!row.isEmpty()) list.add(row);
         if (id == storage.getAdminId()) {
             row = new KeyboardRow();
             row.add(new KeyboardButton("/posts"));
