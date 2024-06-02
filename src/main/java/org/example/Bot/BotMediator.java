@@ -1,5 +1,7 @@
 package org.example.Bot;
-import org.example.DB.DB;
+import org.example.DB.AppUserDAO.AppUserDAO;
+import org.example.DB.SubscribeDAO.SubscribeDAO;
+import org.example.DB.SubscribePostDAO.SubscribePostDAO;
 import org.example.entity.AppUser;
 import org.example.entity.Subscribe;
 import org.example.entity.SubscribePost;
@@ -21,9 +23,10 @@ import java.io.InputStream;
 import java.util.*;
 
 public class BotMediator extends TelegramLongPollingBot {
-    final private DB db = new DB();
+    AppUserDAO AppUserDAO = new AppUserDAO();
+    SubscribeDAO SubscribeDAO = new SubscribeDAO();
+    SubscribePostDAO SubscribePostDAO = new SubscribePostDAO();
     Storage storage;
-
     public BotMediator() {
         storage = new Storage();
     }
@@ -98,8 +101,8 @@ public class BotMediator extends TelegramLongPollingBot {
         return false;
     }
     private boolean subscribeUser(Long userId, String key) {
-        Subscribe subscribe = db.getSubscribe(key);
-        return db.subscribeUser(userId, subscribe);
+        Subscribe subscribe = SubscribeDAO.getSubscribe(key);
+        return AppUserDAO.subscribeUser(userId, subscribe);
     }
     public ReplyKeyboardMarkup setMenu(Long id) {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
@@ -147,12 +150,12 @@ public class BotMediator extends TelegramLongPollingBot {
         return inlineKeyboardMarkup;
     }
     private String UserInfo(Long UserId) {
-        if (db.getUserData(UserId).getSubscribe().getActive()) return db.getUserData(UserId).getSubscribe().toString();
+        if (AppUserDAO.getUserInfo(UserId).getSubscribe().getActive()) return AppUserDAO.getUserInfo(UserId).getSubscribe().toString();
         else return "Подписка на данный момент не активна";
     }
     private void registerUser(Message message) {
-        if (db.getUserData(message.getFrom().getId()) != null) {
-            System.out.println("[log] Пользователь "+ db.getUserData(message.getFrom().getId()) + " существует");
+        if (AppUserDAO.getUserInfo(message.getFrom().getId()) != null) {
+            System.out.println("[log] Пользователь "+ AppUserDAO.getUserInfo(message.getFrom().getId()) + " существует");
             return;
         }
         AppUser user = new AppUser();
@@ -161,17 +164,17 @@ public class BotMediator extends TelegramLongPollingBot {
         user.setLastName(message.getFrom().getLastName());
         user.setUsername(message.getFrom().getUserName());
         user.setFirstName(message.getFrom().getFirstName());
-        if (db.createUser(user)) System.out.println("[log] Пользователь " + user + " успешно создан");
+        if (AppUserDAO.createAppUser(user)) System.out.println("[log] Пользователь " + user + " успешно создан");
         else System.out.println("[log] Пользователь не создан");
     }
     private boolean unSubscribeUser(Long userId) {
-        return db.unSubscribeUser(userId);
+        return AppUserDAO.unSubscribeUser(userId);
     }
     private void sendPosts(ArrayList<AppUser> users) throws TelegramApiException {
         for (AppUser user : users) {
             SendPhoto sendPhoto = new SendPhoto();
             sendPhoto.setChatId(String.valueOf(user.getTelegramUserId()));
-            SubscribePost post = db.getRandomSubscribePost(user.getSubscribe().getSubscribeType());
+            SubscribePost post = SubscribePostDAO.getRandomSubscribePost(user.getSubscribe().getSubscribeType());
             InputStream inputStream = getClass().getResourceAsStream("/" + post.getSrc() + ".png");
             InputFile photoFile = new InputFile(inputStream, post.getSrc() + ".png");
             sendPhoto.setPhoto(photoFile);
@@ -192,25 +195,25 @@ public class BotMediator extends TelegramLongPollingBot {
                     response = new String[]{String.join(", ", storage.getCommands().get(message.getText())), UserInfo(message.getFrom().getId())};
                     break;
                 case "/subscribe":
-                    if (db.getUserData(message.getFrom().getId()).getSubscribe().getActive()) {
+                    if (AppUserDAO.getUserInfo(message.getFrom().getId()).getSubscribe().getActive()) {
                         response = new String[]{"У вас уже есть подписка!"};
                     }
                     break;
                 case "/unsubscribe":
-                    if (!db.getUserData(message.getFrom().getId()).getSubscribe().getActive())  {
+                    if (!AppUserDAO.getUserInfo(message.getFrom().getId()).getSubscribe().getActive())  {
                         response = new String[]{"У вас еще нет подписки!"};
-                        storage.getUsersLastAnswers().put(message.getChatId(), "");
+                        storage.putUsersLastAnswers(message.getChatId(), "");
                         return response;
                     }
                     break;
                 case "/posts":
                     if (message.getFrom().getId() == storage.getAdminId()) {
-                        sendPosts(db.getAllSubscribers());
+                        sendPosts(AppUserDAO.getAllSubscribers());
                         response = storage.getCommands().get(message.getText());
                     }
                     break;
             }
-            storage.getUsersLastAnswers().put(message.getChatId(), msg);
+            storage.putUsersLastAnswers(message.getChatId(), msg);
         } else if (Objects.equals(storage.getUsersLastAnswers().get(message.getChatId()), "/subscribe")) {
             if (checkValidKey(msg)) {
                 if (subscribeUser(message.getFrom().getId(), msg)) response =  new String[]{"Поздравляю! Вы получили подписку!"};
