@@ -21,12 +21,29 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.InputStream;
 import java.util.*;
-
+/**
+ * Класс BotMediator - посредник для работы с ботом Telegram.
+ */
 public class BotMediator extends TelegramLongPollingBot {
+    /**
+     * Объект для доступа к данным пользователей приложения.
+     */
     AppUserDAO AppUserDAO = new AppUserDAO();
+    /**
+     * Объект для доступа к данным подписок пользователей.
+     */
     SubscribeDAO SubscribeDAO = new SubscribeDAO();
+    /**
+     * Объект для доступа к данным постов подписок.
+     */
     SubscribePostDAO SubscribePostDAO = new SubscribePostDAO();
+    /**
+     * Объект для управления хранилищем данных.
+     */
     Storage storage;
+    /**
+     * Конструктор класса BotMediator, инициализирует объект хранилища Storage.
+     */
     public BotMediator() {
         storage = new Storage();
     }
@@ -45,7 +62,10 @@ public class BotMediator extends TelegramLongPollingBot {
     public void onRegister() {
         super.onRegister();
     }
-
+    /**
+     * Метод для обработки обновлений, получаемых от Telegram API.
+     * @param update Обновление от Telegram API.
+     */
     @Override
     public void onUpdateReceived(Update update) {
         try {
@@ -92,7 +112,11 @@ public class BotMediator extends TelegramLongPollingBot {
     public void onUpdatesReceived(List<Update> updates) {
         super.onUpdatesReceived(updates);
     }
-
+    /**
+     * Метод для проверки допустимости ключа.
+     * @param key Ключ для проверки.
+     * @return true, если ключ допустим, в противном случае - false.
+     */
     private boolean checkValidKey(String key) {
         String[] keys = storage.getKeys();
         for (String k : keys) {
@@ -100,10 +124,21 @@ public class BotMediator extends TelegramLongPollingBot {
         }
         return false;
     }
+    /**
+     * Метод для подписки пользователя.
+     * @param userId Идентификатор пользователя.
+     * @param key Ключ подписки.
+     * @return true, если подписка успешно оформлена, в противном случае - false.
+     */
     private boolean subscribeUser(Long userId, String key) {
         Subscribe subscribe = SubscribeDAO.getSubscribe(key);
         return AppUserDAO.subscribeUser(userId, subscribe);
     }
+    /**
+     * Метод для отображения меню пользователю.
+     * @param id Идентификатор пользователя.
+     * @return ReplyKeyboardMarkup с кнопками меню.
+     */
     public ReplyKeyboardMarkup setMenu(Long id) {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setResizeKeyboard(true);
@@ -127,6 +162,10 @@ public class BotMediator extends TelegramLongPollingBot {
         keyboardMarkup.setKeyboard(list);
         return keyboardMarkup;
     }
+    /**
+     * Метод для создания кнопок "ДА" и "НЕТ" для инлайн клавиатуры.
+     * @return InlineKeyboardMarkup с кнопками "ДА" и "НЕТ".
+     */
     public InlineKeyboardMarkup setButtons() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
 
@@ -149,10 +188,19 @@ public class BotMediator extends TelegramLongPollingBot {
 
         return inlineKeyboardMarkup;
     }
+    /**
+     * Метод для получения информации о пользователе.
+     * @param UserId Идентификатор пользователя.
+     * @return Информация о пользователе и состоянии подписки.
+     */
     private String UserInfo(Long UserId) {
         if (AppUserDAO.getUserInfo(UserId).getSubscribe().getActive()) return AppUserDAO.getUserInfo(UserId).getSubscribe().toString();
         else return "Подписка на данный момент не активна";
     }
+    /**
+     * Метод для регистрации нового пользователя.
+     * @param message Сообщение пользователя.
+     */
     private void registerUser(Message message) {
         if (AppUserDAO.getUserInfo(message.getFrom().getId()) != null) {
             System.out.println("[log] Пользователь "+ AppUserDAO.getUserInfo(message.getFrom().getId()) + " существует");
@@ -167,9 +215,19 @@ public class BotMediator extends TelegramLongPollingBot {
         if (AppUserDAO.createAppUser(user)) System.out.println("[log] Пользователь " + user + " успешно создан");
         else System.out.println("[log] Пользователь не создан");
     }
+    /**
+     * Метод для отписки пользователя.
+     * @param userId Идентификатор пользователя.
+     * @return true, если отписка прошла успешно, в противном случае - false.
+     */
     private boolean unSubscribeUser(Long userId) {
         return AppUserDAO.unSubscribeUser(userId);
     }
+    /**
+     * Метод для отправки постов подписчикам.
+     * @param users Список пользователей подписчиков.
+     * @throws TelegramApiException
+     */
     private void sendPosts(ArrayList<AppUser> users) throws TelegramApiException {
         for (AppUser user : users) {
             SendPhoto sendPhoto = new SendPhoto();
@@ -182,6 +240,12 @@ public class BotMediator extends TelegramLongPollingBot {
             execute(sendPhoto);
         }
     }
+    /**
+     * Метод для парсинга сообщения и выполнения соответствующих действий.
+     * @param message Сообщение пользователя.
+     * @return Массив строк с ответами на сообщение.
+     * @throws TelegramApiException
+     */
     private String[] parseMessage(Message message) throws TelegramApiException {
         String[] response;
         String msg = message.getText().toLowerCase();

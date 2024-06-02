@@ -1,13 +1,21 @@
 package org.example.entity;
-
+/**
+ * Класс, представляющий пользователя приложения.
+ */
 public class AppUser {
+    /** Идентификатор пользователя в приложении */
     private Long id;
+    /** Идентификатор пользователя в Telegram. */
     private Long telegramUserId;
+    /** Имя пользователя. */
     private String firstName;
+    /** Фамилия пользователя. */
     private String lastName;
+    /** Псевдоним пользователя. */
     private String username;
+    /** Объект, представляющий подписку пользователя. */
     private Subscribe subscribe;
-
+    /** Далее представлены геттеры и сеттеры для полей класса */
     public void setId(Long id) {
         this.id = id;
     }
