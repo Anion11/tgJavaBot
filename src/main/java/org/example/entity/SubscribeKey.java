@@ -1,15 +1,9 @@
 package org.example.entity;
-/**
- * Класс, представляющий ключ для подписки.
- */
+
 public class SubscribeKey {
-    /** Идентификатор ключа подписки. */
     private int subscribe_key_id;
-    /** Тип подписки. */
     private String subscribe_type;
-    /** Ключ подписки. */
     private String key;
-    /** Далее представлены геттеры и сеттеры для полей класса */
 
     public int getSubscribe_key_id() {
         return subscribe_key_id;

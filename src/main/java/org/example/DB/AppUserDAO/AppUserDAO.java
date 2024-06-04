@@ -61,7 +61,8 @@ public class AppUserDAO implements IAppUserDAO {
                 st.setString(2, user.getFirstName());
                 st.setString(3, user.getLastName());
                 st.setString(4, user.getUsername());
-                st.setInt(5, user.getSubscribe().getSubscribeId());
+                if (user.getSubscribe() != null) st.setInt(5, user.getSubscribe().getSubscribeId());
+                else st.setObject(5, null);
                 st.executeUpdate();
                 st.close();
             } finally {

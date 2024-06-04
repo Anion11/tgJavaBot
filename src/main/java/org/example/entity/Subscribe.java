@@ -1,15 +1,9 @@
 package org.example.entity;
-/**
- * Класс, представляющий подписку пользователя.
- */
+
 public class Subscribe {
-    /** Идентификатор подписки. */
     private int subscribe_id;
-    /** Тип подписки. */
     private String subscribe_type;
-    /** Флаг активности подписки. */
     private Boolean active;
-    /** Далее представлены геттеры и сеттеры для полей класса */
 
     public Boolean getActive() {
         return active;
