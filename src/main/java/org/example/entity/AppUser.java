@@ -1,12 +1,15 @@
 package org.example.entity;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 public class AppUser {
     private Long id;
     private Long telegramUserId;
     private String firstName;
     private String lastName;
     private String username;
-    private Subscribe subscribe;
+    private Subscribe[] subscribe;
 
     public void setId(Long id) {
         this.id = id;
@@ -28,7 +31,7 @@ public class AppUser {
         this.username = username;
     }
 
-    public void setSubscribe(Subscribe sub) {
+    public void setSubscribe(Subscribe[] sub) {
         subscribe = sub;
     }
 
@@ -48,7 +51,7 @@ public class AppUser {
         return username;
     }
 
-    public Subscribe getSubscribe() {
+    public Subscribe[] getSubscribe() {
         return subscribe;
     }
 
@@ -59,7 +62,11 @@ public class AppUser {
                 ", telegramUserId=" + telegramUserId +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", subscribe=" + subscribe +
+                ", subscribe=" + Arrays.stream(subscribe)
+                .map(subscribe -> "ID: " + subscribe.getSubscribeId() +
+                        ", Type: " + subscribe.getSubscribeType() +
+                        ", Key: " + subscribe.getKey())
+                .collect(Collectors.joining("\n")) +
                 " }";
     }
 }

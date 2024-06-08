@@ -1,20 +1,19 @@
 package org.example.Bot;
 
-import org.example.DB.SubscribeKeyDAO.SubscribeKeyDAO;
-import org.example.entity.SubscribeKey;
+import org.example.DB.SubscribeDAO.SubscribeDAO;
+import org.example.entity.Subscribe;
 
 import java.util.HashMap;
 
 public class Storage {
     final private HashMap<String, String[]> commands = new HashMap<>();
     private final HashMap<Long, String> usersLastAnswers = new HashMap<>();
-    private SubscribeKeyDAO SubKeyDAO = new SubscribeKeyDAO();
+    private SubscribeDAO SubDAO = new SubscribeDAO();
     public Storage(){
         commands.put("/start", new String[]{"Привет, я бот для проверки подписок", "Введите /subscribe для подключения подписки"});
         commands.put("/unsubscribe", new String[]{"Вы точно уверены что хотите отписаться?"});
         commands.put("/subscribe", new String[]{"Введите ключ для получения подписки:"});
         commands.put("/info", new String[]{"Вот информация о вашей подписке:"});
-        commands.put("/posts", new String[]{"Посты всем подписчикам отправленны!"});
     }
 
     public long getAdminId() {
@@ -32,7 +31,7 @@ public class Storage {
     }
 
     public String[] getKeys() {
-        SubscribeKey[] subKeys = SubKeyDAO.getAllSubscribeKey();
+        Subscribe[] subKeys = SubDAO.getAllSubscribeKey();
         String[] keys = new String[subKeys.length];
 
         for (int i = 0; i < subKeys.length; i++) {
