@@ -161,25 +161,12 @@ public class BotMediator extends TelegramLongPollingBot {
         user.setLastName(message.getFrom().getLastName());
         user.setUsername(message.getFrom().getUserName());
         user.setFirstName(message.getFrom().getFirstName());
-        if (AppUserDAO.createAppUser(user)) System.out.println("[log] Пользователь " + user + " успешно создан");
-        else System.out.println("[log] Пользователь не создан");
+        AppUserDAO.createAppUser(user);
     }
     private boolean unSubscribeUser(Long userId, String type) {
         Subscribe subscribe = SubscribeDAO.getSubscribeByType(userId, type);
         return SubscribeDAO.unSubscribeUser(userId, subscribe);
     }
-//    private void sendPosts(ArrayList<AppUser> users) throws TelegramApiException {
-//        for (AppUser user : users) {
-//            SendPhoto sendPhoto = new SendPhoto();
-//            sendPhoto.setChatId(String.valueOf(user.getTelegramUserId()));
-//            SubscribePost post = SubscribePostDAO.getRandomSubscribePost(user.getSubscribe().getSubscribeType());
-//            InputStream inputStream = getClass().getResourceAsStream("/" + post.getSrc() + ".png");
-//            InputFile photoFile = new InputFile(inputStream, post.getSrc() + ".png");
-//            sendPhoto.setPhoto(photoFile);
-//            sendPhoto.setCaption(post.getDescr());
-//            execute(sendPhoto);
-//        }
-//    }
     private String[] parseMessage(Message message) throws TelegramApiException {
         String[] response;
         String msg = message.getText().toLowerCase();
